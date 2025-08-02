@@ -1,0 +1,59 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+from zalezpro_backend import fetch_market_data, analyze_breakout
+
+# App configuration
+st.set_page_config(
+    page_title="ZalezPro - Trading Signals",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Title and header
+st.title("📈 ZalezPro - Live Deriv Trading Signals")
+st.caption("Updated every minute with real-time signals. Default: Light Mode")
+
+# Simulated market symbols (to match your 6 markets)
+markets = ['V75', 'V75(1s)', 'V100', 'V100(1s)', 'V25', 'V25(1s)']
+timeframe = '1h'
+
+# Stream signals for each market
+for symbol in markets:
+    st.subheader(f"🔍 Signal for {symbol}")
+
+    data = fetch_market_data(symbol, timeframe)
+    signal = analyze_breakout(data)
+
+    if signal:
+        st.success("✅ Signal Found")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("📍 Entry Price", f"{signal['entry']:.2f}")
+            st.metric("🛡️ Stop Loss", f"{signal['sl']:.2f}")
+        with col2:
+            st.metric("🎯 Take Profit 1", f"{signal['tp1']:.2f}")
+            st.metric("🎯 Take Profit 2", f"{signal['tp2']:.2f}")
+        with col3:
+            st.metric("🎯 Take Profit 3", f"{signal['tp3']:.2f}")
+            st.metric("📊 Confidence", f"{signal['confidence']}%")
+
+        st.markdown(f"**Type:** {signal['signal_type']}")
+        st.markdown(f"**Outlook:**")
+        st.write(signal['outlook'])
+
+        st.info(f"📉 Support: {signal['support']} | 📈 Resistance: {signal['resistance']}")
+
+    else:
+        st.warning("❌ No valid breakout signal at the moment.")
+
+# Footer
+st.markdown("---")
+st.caption(f"Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+streamlit==1.35.0
+pandas==2.2.2
+numpy==1.26.4
+requests==2.31.0
+python-dateutil==2.9.0.post0
+streamlit-autorefresh==1.0.2
